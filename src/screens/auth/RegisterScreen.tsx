@@ -1,10 +1,56 @@
 import { Button, Input, Layout, Text } from '@ui-kitten/components';
-import { Image, ImageBackground, useWindowDimensions } from 'react-native';
+import { Alert, Image, ImageBackground, useWindowDimensions } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { MyIcon } from '../components/MyIcon';
+import axios from 'axios';
+import { useState as useReactState } from 'react';
+import { StackScreenProps } from '@react-navigation/stack';
+import { RootStackParams } from '../../routes/Navigator';
 
-export const RegisterScreen = () => {
+interface Props extends StackScreenProps<RootStackParams, 'RegisterScreen'>{ }
+export const RegisterScreen = ({ navigation }: Props) => {
     const {height} = useWindowDimensions();
+    const [nombre, setNombre] = useReactState('');
+    const [email, setEmail] = useReactState('');
+    const [password, setPassword] = useReactState('');
+    const [confirmPassword, setConfirmPassword] = useReactState('');
+    const [isPosting, setIsPosting] = useReactState(false);
+    const handleRegister = async () => {
+      if (!nombre || !email || !password || !confirmPassword) {
+        Alert.alert('Error', 'Todos los campos son obligatorios');
+        return;
+      }
+  
+      if (password !== confirmPassword) {
+        Alert.alert('Error', 'Las contraseñas no coinciden');
+        return;
+      }
+      const data = {
+        "fname": nombre,
+        "fsurname": "test",
+        "province": "1",
+        "city": "1",
+        "cp": "123456",
+        "email": email,
+        "pwd": password,
+        "pwd_confirmation": password
+      }
+      try {
+        const response = await axios.post('https://dev.aerotest.cl/api/registro', data);
+        setIsPosting(true);
+        Alert.alert('Éxito', 'Registro exitoso');
+
+        setNombre('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+
+        return  navigation.navigate('HomeScreen');
+      } catch (error) {
+        Alert.alert('Error', 'No se pudo registrar el usuario');
+        setIsPosting(false);
+      }
+    };
       return (
         <Layout style={{ flex: 1 }}>
           <ImageBackground
@@ -30,7 +76,9 @@ export const RegisterScreen = () => {
                 accessoryLeft={<MyIcon name='person-outline' />}
                 placeholder="Nombre y apellido"
                 autoCapitalize='none'
-                style={{ marginBottom: 10 }} />
+                style={{ marginBottom: 10 }} 
+                value={nombre}
+                onChangeText={setNombre}/>
             </Layout>
             <Layout style={{ marginTop: 5, backgroundColor: 'transparent' }}>
               <Input
@@ -38,7 +86,9 @@ export const RegisterScreen = () => {
                 placeholder="Correo electrónico"
                 keyboardType='email-address'
                 autoCapitalize='none'
-                style={{ marginBottom: 10 }} />
+                style={{ marginBottom: 10 }} 
+                value={email}
+                onChangeText={setEmail}/>
             </Layout>
             <Layout style={{ marginTop: 5, backgroundColor: 'transparent' }}>
               <Input
@@ -46,7 +96,9 @@ export const RegisterScreen = () => {
                 placeholder="Contraseña"
                 autoCapitalize='none'
                 secureTextEntry
-                style={{ marginBottom: 10 }} />
+                style={{ marginBottom: 10 }} 
+                value={password}
+                onChangeText={setPassword}/>
             </Layout>
             <Layout style={{ marginTop: 5, backgroundColor: 'transparent' }}>
               <Input
@@ -54,13 +106,15 @@ export const RegisterScreen = () => {
                 placeholder="Confirmar Contraseña"
                 autoCapitalize='none'
                 secureTextEntry
-                style={{ marginBottom: 10 }} />
+                style={{ marginBottom: 10 }}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword} />
             </Layout>
     
             /** Button */
             <Layout style={{ marginTop: 20, backgroundColor: 'transparent' }}>
               <Button 
-                onPress={() => {}}>
+                onPress={() => handleRegister()}>
                   Registrarme
               </Button>
             </Layout>
